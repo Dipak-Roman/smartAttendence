@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Student Dashboard</title>
+    <link rel="stylesheet" href="stddash.css">
+</head>
+<body>
+
+<!-- Sidebar -->
+<div class="sidebar">
+    <h2>Student Panel</h2>
+    <ul>
+        <li onclick="goToDashboard()">🏠 Dashboard</li>
+        <li onclick="goToAttendance()">📷 Mark Attendance</li>
+        <li onclick="goToReport()">📊 My Records</li>
+        <li onclick="logout()">🚪 Logout</li>
+    </ul>
+</div>
+
+<!-- Main -->
+<div class="main">
+
+    <!-- Header -->
+    <div class="header">
+        <h1>Welcome, Student 👋</h1>
+        <p>Your attendance overview</p>
+    </div>
+
+    <!-- Cards -->
+    <div class="cards">
+        <div class="card">
+            <h3>Total Lectures</h3>
+            <p id="totalLectures">0</p>
+        </div>
+
+        <div class="card">
+            <h3>Attended</h3>
+            <p id="attendedLectures">0</p>
+        </div>
+
+        <div class="card">
+            <h3>Absent</h3>
+            <p id="absentLectures">0</p>
+        </div>
+
+        <div class="card">
+            <h3>Attendance %</h3>
+            <p id="percentage">0%</p>
+        </div>
+    </div>
+
+    <!-- Quick Action -->
+    <div class="actions-box">
+        <h2>Quick Action</h2>
+        <div class="actions">
+            <button onclick="goToAttendance()">Mark Attendance</button>
+        </div>
+    </div>
+
+    <!-- Recent Attendance -->
+    <div class="card" style="margin-top:30px;">
+        <h3>Recent Attendance</h3>
+
+        <table id="studentTable">
+            <thead>
+                <tr>
+                    <th>Subject</th>
+                    <th>Date</th>
+                    <th>Time</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+</div>
+
+<script>
+
+// Navigation
+function goToDashboard() {
+    location.reload();
+}
+
+function goToAttendance() {
+    window.location.href = "attendance.html";
+}
+
+function goToReport() {
+    window.location.href = "report.html";
+}
+
+function logout() {
+    window.location.href = "../login.html";
+}
+
+// Load data
+async function loadData() {
+    const res = await fetch('http://localhost:5000/api/report');
+    const data = await res.json();
+
+    // 🔴 TEMP LOGIC (replace later with real student filter)
+    let totalLectures = 20; // total lectures (can come from DB later)
+    let attended = data.length;
+
+    let absent = totalLectures - attended;
+    if(absent < 0) absent = 0;
+
+    let percentage = totalLectures 
+        ? ((attended / totalLectures) * 100).toFixed(1) 
+        : 0;
+
+    // Update UI
+    document.getElementById("totalLectures").innerText = totalLectures;
+    document.getElementById("attendedLectures").innerText = attended;
+    document.getElementById("absentLectures").innerText = absent;
+    document.getElementById("percentage").innerText = percentage + "%";
+
+    // Fill recent table
+    const tbody = document.querySelector("#studentTable tbody");
+    tbody.innerHTML = "";
+
+    data.slice(-5).forEach(item => {
+        const row = `<tr>
+            <td>${item.subject}</td>
+            <td>${item.date}</td>
+            <td>${item.time}</td>
+        </tr>`;
+        tbody.innerHTML += row;
+    });
+}
+
+// Run
+loadData();
+
+</script>
+
+</body>
+</html>

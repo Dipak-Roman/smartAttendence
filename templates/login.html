@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Smart Attendance Login</title>
+    <link rel="stylesheet" href="login.css">
+</head>
+<body>
+
+<div class="login-container">
+    <h2>Smart Attendance System</h2>
+    <p class="subtitle">Login to continue</p>
+
+    <select id="role">
+        <option value="">Select Role</option>
+        <option value="teacher">Teacher</option>
+        <option value="student">Student</option>
+    </select>
+
+    <input type="text" id="username" placeholder="Enter Username">
+    <input type="password" id="password" placeholder="Enter Password">
+
+    <button onclick="login()">Login</button>
+
+    <p class="login-link">
+        Enroll the new student? <a href="signup.html">Enroll</a>
+    </p>
+
+
+    <p id="error" class="error"></p>
+</div>
+
+<script>    
+function login() {
+    const role = document.getElementById("role").value;
+    const username = document.getElementById("username").value;
+    const password = document.getElementById("password").value;
+
+    if(username === "admin" && password === "1234" && role === "teacher") {
+        window.location.href = "teacher/dashboard.html";
+    } else if(username === "admin" && password === "1234" && role === "student"){
+        window.location.href = "student/stddash.html";
+    }else {
+        document.getElementById("error").innerText = "Invalid Username or Password!";
+    }
+}
+</script>
+
+</body>
+</html>

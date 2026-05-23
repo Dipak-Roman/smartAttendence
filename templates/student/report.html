@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>My Attendance Report</title>
+    <link rel="stylesheet" href="report.css">
+</head>
+<body>
+
+<!-- Sidebar -->
+<div class="sidebar">
+    <h2>Student Panel</h2>
+    <ul>
+        <li onclick="goToDashboard()">🏠 Dashboard</li>
+        <li onclick="goToAttendance()">📷 Mark Attendance</li>
+        <li onclick="goToReport()">📊 My Report</li>
+        <li onclick="logout()">🚪 Logout</li>
+    </ul>
+</div>
+
+<!-- Main -->
+<div class="main">
+
+    <!-- Header -->
+    <div class="header">
+        <h1>My Attendance Report</h1>
+        <p>Track your attendance performance</p>
+    </div>
+
+    <!-- Cards -->
+    <div class="cards">
+        <div class="card">
+            <h3>Total Lectures</h3>
+            <p id="total">0</p>
+        </div>
+
+        <div class="card">
+            <h3>Present</h3>
+            <p id="present">0</p>
+        </div>
+
+        <div class="card">
+            <h3>Absent</h3>
+            <p id="absent">0</p>
+        </div>
+    </div>
+
+    <!-- Table -->
+    <div class="card" style="margin-top:30px;">
+        <h3>Attendance Details</h3>
+
+        <table id="reportTable">
+            <thead>
+                <tr>
+                    <th>Subject</th>
+                    <th>Date</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+</div>
+
+<script>
+
+// Navigation
+function goToDashboard() {
+    window.location.href = "stddash.html";
+}
+
+function goToAttendance() {
+    window.location.href = "attendance.html";
+}
+
+function goToReport() {
+    location.reload();
+}
+
+function logout() {
+    window.location.href = "../login.html";
+}
+
+// 🔴 IMPORTANT: Replace with real logged-in student later
+const studentName = "Nandu";
+
+// Load data
+async function loadReport() {
+    const res = await fetch('http://localhost:5000/api/report');
+    const data = await res.json();
+
+    // Filter only this student
+    const studentData = data.filter(item => item.name === studentName);
+
+    let totalLectures = 20; // Replace later with real total
+    let present = studentData.length;
+    let absent = totalLectures - present;
+    if(absent < 0) absent = 0;
+
+    // Update cards
+    document.getElementById("total").innerText = totalLectures;
+    document.getElementById("present").innerText = present;
+    document.getElementById("absent").innerText = absent;
+
+    // Fill table
+    const tbody = document.querySelector("#reportTable tbody");
+    tbody.innerHTML = "";
+
+    // Present records
+    studentData.forEach(item => {
+        const row = `<tr>
+            <td>${item.subject}</td>
+            <td>${item.date}</td>
+            <td style="color:green;">Present</td>
+        </tr>`;
+        tbody.innerHTML += row;
+    });
+
+    // Add absent (dummy dates for now)
+    for(let i = 1; i <= absent; i++) {
+        const row = `<tr>
+            <td>--</td>
+            <td>--</td>
+            <td style="color:red;">Absent</td>
+        </tr>`;
+        tbody.innerHTML += row;
+    }
+}
+
+// Run
+loadReport();
+
+</script>
+
+</body>
+</html>

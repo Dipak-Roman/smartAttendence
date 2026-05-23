@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Lecture Schedule</title>
+    <link rel="stylesheet" href="schedule.css">
+</head>
+<body>
+
+<!-- Sidebar -->
+<div class="sidebar">
+    <h2>Teacher Panel</h2>
+    <ul>
+        <li onclick="goToDashboard()">🏠 Dashboard</li>
+        <li onclick="goToLecture()">📷 Lecture</li>
+        <li onclick="goToReport()">📊 Reports</li>
+        <li onclick="goToSchedule()">📅 Schedule</li>
+        <li onclick="logout()">🚪 Logout</li>
+    </ul>
+</div>
+
+<!-- Main -->
+<div class="main">
+
+    <!-- Header -->
+    <div class="header">
+        <h1>Lecture Schedule</h1>
+        <p>All lectures by all faculty</p>
+    </div>
+
+    <!-- Cards (Summary) -->
+    <div class="cards">
+        <div class="card">
+            <h3>Total Lectures</h3>
+            <p id="totalLectures">0</p>
+        </div>
+
+        <div class="card">
+            <h3>Total Faculty</h3>
+            <p id="totalFaculty">0</p>
+        </div>
+    </div>
+
+    <!-- Table -->
+    <div class="card" style="margin-top:30px;">
+        <h3>Lecture Schedule</h3>
+
+        <table id="scheduleTable">
+            <thead>
+                <tr>
+                    <th>Subject</th>
+                    <th>Faculty</th>
+                    <th>Start Time</th>
+                    <th>End Time</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+</div>
+
+<script>
+
+// Navigation
+function goToDashboard() {
+    window.location.href = "dashboard.html";
+}
+
+function goToLecture() {
+    window.location.href = "lecture.html";  
+}
+
+function goToReport() {
+    window.location.href = "report.html";
+}
+
+function goToSchedule() {
+    location.reload();
+}
+
+function logout() {
+    window.location.href = "../login.html";
+}
+
+// Load lectures
+async function loadLectures() {
+    const res = await fetch('http://localhost:5000/api/lecture');
+    const data = await res.json();
+
+    const tbody = document.querySelector("#scheduleTable tbody");
+    tbody.innerHTML = "";
+
+    data.forEach(item => {
+        const row = `<tr>
+            <td>${item.subject}</td>
+            <td>${item.faculty}</td>
+            <td>${item.start}</td>
+            <td>${item.end}</td>
+        </tr>`;
+        tbody.innerHTML += row;
+    });
+
+    // Update cards
+    document.getElementById("totalLectures").innerText = data.length;
+
+    const facultySet = new Set(data.map(item => item.faculty));
+    document.getElementById("totalFaculty").innerText = facultySet.size;
+}
+
+// Run
+loadLectures();
+
+</script>
+
+</body>
+</html>
