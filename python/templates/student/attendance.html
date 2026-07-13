@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Attendance</title>
+    <link rel="stylesheet" href="attendance.css">
+</head>
+<body>
+
+<!-- Sidebar -->
+<div class="sidebar">
+    <h2>Attendance</h2>
+    <ul>
+        <li onclick="goToDashboard()">🏠 Dashboard</li>
+        <li onclick="goToAttendance()">📷 Attendance</li>
+        <li onclick="goToReport()">📊 Reports</li>
+        <li onclick="logout()">🚪 Logout</li>
+    </ul>
+</div>
+
+<!-- Main -->
+<div class="main">
+
+    <!-- Header -->
+    <div class="header">
+        <h1>Lecture Attendance</h1>
+        <p>Select a lecture to mark attendance</p>
+    </div>
+
+    <!-- Lecture Cards -->
+    <div class="lecture-container" id="lectureContainer">
+
+        <!-- <div class="lecture-card">
+            <h3>Computer Networks</h3>
+            <p>Time: 06:00 AM - 11:00 AM</p>
+            <p>Faculty: Prof. Sharma</p>
+            <button onclick="startAttendance('Computer Networks')"> 
+                Mark Attendance
+            </button>
+        </div>
+
+        <div class="lecture-card">
+            <h3>Data Mining</h3>
+            <p>Time: 11:15 AM - 12:15 PM</p>
+            <p>Faculty: Prof. Patil</p>
+            <button onclick="startAttendance('Data Mining')">
+                Mark Attendance
+            </button>
+        </div>
+
+        <div class="lecture-card">
+            <h3>Lecture id: 1</h3>
+            <h3>AI Basics</h3>
+            <p>Time: 1:00 PM - 2:00 PM</p>
+            <p>Faculty: Prof. Khan</p>
+            <button onclick="startAttendance('AI Basics')">
+                Mark Attendance
+            </button>
+        </div> -->
+
+
+    </div>
+
+    <!-- Camera Section -->
+    <div id="cameraSection" class="camera-section" style="display:none;">
+        <h2 id="lectureTitle"></h2>
+
+        <video id="video" autoplay></video>
+
+        <div class="camera-buttons">
+            <button onclick="startCamera()">Start Camera</button>
+            <button onclick="capture()">Capture</button>
+            <button onclick="markAttendance()">Submit</button>
+        </div>
+
+        <p id="result">Detected: --</p>
+    </div>
+
+</div>
+
+<script>
+
+let selectedLecture = {};
+let detectedStudent = {};
+
+// // Lecture timing
+// const lectures = {
+//     "Computer Networks": { start: "6:00", end: "11:00" },
+//     "Data Mining": { start: "11:15", end: "12:15" },
+//     "AI Basics": { start: "13:00", end: "14:00" }
+// };
+
+// Navigation
+function goToDashboard() {
+    window.location.href = "stddash.html";
+}
+
+function goToAttendance() {
+    location.reload();
+}
+
+function goToReport() {
+    window.location.href = "report.html";
+}
+
+function logout() {
+    window.location.href = "../login.html";
+}
+
+// Time check
+function isWithinTime(start, end) {
+    const now = new Date();
+    const current = now.getHours() * 60 + now.getMinutes();
+
+    const [sh, sm] = start.split(":").map(Number);
+    const [eh, em] = end.split(":").map(Number);
+
+    const startTime = sh * 60 + sm;
+    const endTime = eh * 60 + em;
+
+    return current >= startTime && current <= endTime;
+}
+
+
+
+// Start attendance
+function startAttendance(id, subject, faculty) {
+
+    selectedLecture = {
+        id: id,
+        subject: subject,
+        faculty: faculty
+    };
+
+    document.getElementById("lectureTitle").innerText = subject;
+
+    document.getElementById("cameraSection").style.display = "block";
+
+    startCamera();
+
+}
+
+// Camera
+const video = document.getElementById('video');
+
+function startCamera() {
+    navigator.mediaDevices.getUserMedia({ video: true })
+        .then(stream => video.srcObject = stream)
+        .catch(() => alert("Camera access denied!"));
+}
+
+// Dummy capture
+async function capture() {
+
+    const canvas = document.createElement("canvas");
+
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+
+    const ctx = canvas.getContext("2d");
+
+    ctx.drawImage(video, 0, 0);
+
+    canvas.toBlob(async function(blob){
+
+        const formData = new FormData();
+
+        formData.append("image", blob, "capture.jpg");
+
+        const res = await fetch(
+            "http://localhost:5000/api/recognize",
+            {
+                method: "POST",
+                body: formData
+            }
+        );
+
+        const data = await res.json();
+
+        if(data.success){
+            detectedStudent = data;
+            document.getElementById("result").innerText =
+                "Detected: " + data.name;
+
+        }else{
+            detectedStudent = {};
+            document.getElementById("result").innerText =
+                data.message;
+
+        }
+
+    }, "image/jpeg");
+
+}
+
+
+
+// Submit attendance
+
+async function markAttendance() {
+
+    if (!detectedStudent.roll) {
+        alert("Please capture the student's face first.");
+        return;
+    }
+
+    const res = await fetch("http://localhost:5000/api/attendance", {
+
+        method: "POST",
+
+        headers: {
+            "Content-Type": "application/json"
+        },
+
+        body: JSON.stringify({
+
+            roll: detectedStudent.roll,
+            name: detectedStudent.name,
+
+            lecture_id: selectedLecture.id,
+            subject: selectedLecture.subject,
+            faculty: selectedLecture.faculty
+
+        })
+
+    });
+
+    if(res.ok){
+        alert(result.message);
+    }else{
+        alert("Something went wrong");
+    }
+
+
+    //alert("Attendance Marked for " + selectedLecture.subject + " ✅")
+
+    video.srcObject.getTracks().forEach(track => track.stop());
+
+}
+
+
+
+async function loadLectures() {
+
+    const container = document.getElementById("lectureContainer");
+
+    container.innerHTML = "";
+
+    const res = await fetch("http://localhost:5000/api/todays_lectures");
+
+    const lectures = await res.json();
+
+    lectures.forEach((lecture) => {
+
+        container.innerHTML += `
+            <div class="lecture-card">
+
+                <h3>${lecture.subject}</h3>
+
+                <p>
+                    Time:
+                    ${lecture.start} - ${lecture.end}
+                </p>
+
+                <p>
+                    Faculty:
+                    ${lecture.faculty}
+                </p>
+
+                <button
+                    onclick="startAttendance(
+                        ${lecture.id},
+                        '${lecture.subject}',
+                        '${lecture.faculty}'
+                    )">
+
+                    Mark Attendance
+
+                </button>
+
+            </div>
+        `;
+
+    });
+
+}
+
+window.onload = function(){
+
+    loadLectures();
+
+}
+
+</script>
+
+</body>
+</html>

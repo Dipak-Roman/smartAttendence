@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Lecture Schedule</title>
+    <link rel="stylesheet" href="lecture.css">
+</head>
+<body>
+
+<!-- Sidebar -->
+<div class="sidebar">
+    <h2>Teacher Panel</h2>
+    <ul>
+        <li onclick="goToDashboard()">🏠 Dashboard</li>
+        <li onclick="goToLecture()">📷 Lecture</li>
+        <li onclick="goToReport()">📊 Reports</li>
+        <li onclick="goToSchedule()">📅 Schedule</li>
+        <li onclick="logout()">🚪 Logout</li>
+    </ul>
+</div>
+
+<!-- Main -->
+<div class="main">
+
+    <!-- Header -->
+    <div class="header">
+        <h1>Lecture Schedule</h1>
+        <p>Manage your lectures easily</p>
+    </div>
+
+    <!-- Summary Cards (like dashboard) -->
+    <div class="cards">
+        <div class="card">
+            <h3>Total Lectures</h3>
+            <p id="totalLectures">0</p>
+        </div>
+
+        <div class="card">
+            <h3>Today's Lectures</h3>
+            <p id="todayLectures">0</p>
+        </div>
+    </div>
+
+    <!-- Add Lecture Card -->
+    <div class="card" style="margin-top:30px; text-align:left;">
+        <h3>Add New Lecture</h3>
+
+        <input type="text" id="subject" placeholder="Subject Name">
+        <input type="text" id="faculty" placeholder="Faculty Name">
+        <input type="time" id="startTime">
+        <input type="time" id="endTime">
+
+        <button onclick="addLecture()">Add Lecture</button>
+    </div>
+
+    <!-- My Lectures -->
+<div class="card" style="margin-top:30px;">
+    <h3>My Lectures</h3>
+
+    <div id="lectureCards" class="lecture-grid">
+
+    </div>
+</div>
+
+    <!-- Lecture List Card -->
+    <div class="card" style="margin-top:30px;">
+        <h3>Lecture List</h3>
+
+        <table id="scheduleTable">
+            <thead>
+                <tr>
+                    <th>Subject</th>
+                    <th>Faculty</th>
+                    <th>Time</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+</div>
+
+<script>
+function goToDashboard() {
+    window.location.href = "dashboard.html";
+}
+
+function goToLecture() {
+    location.reload();
+}
+
+function goToReport() {
+    window.location.href = "report.html";
+}
+
+function goToSchedule() {
+    window.location.href = "schedule.html";
+}
+
+function logout() {
+    window.location.href = "../login.html";
+}
+
+// Data
+let lectures = [];
+
+// Add lectureasync 
+async function addLecture() {
+
+    const subject = document.getElementById("subject").value;
+    const faculty = localStorage.getItem('userName');
+    const start = document.getElementById("startTime").value;
+    const end = document.getElementById("endTime").value;
+
+    console.log(faculty);
+
+    if (!subject || !faculty || !start || !end) {
+        alert("Fill all fields!");
+        return;
+    }
+
+    const res = await fetch("http://localhost:5000/api/addlecture", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            subject,
+            faculty,
+            start,
+            end
+        })
+    });
+
+    const data = await res.json();
+    alert(data.message);
+
+    document.getElementById("subject").value = "";
+    document.getElementById("faculty").value = "";
+    document.getElementById("startTime").value = "";
+    document.getElementById("endTime").value = "";
+
+    displayLectures();
+    displayLectureCards();
+    updateDashboard();
+}
+
+let user;
+
+async function displayLectureCards() {
+
+    user = localStorage.getItem("userName");
+    console.log(user);
+    const container = document.getElementById("lectureCards");
+    container.innerHTML = "";
+
+    const res = await fetch(
+        `http://localhost:5000/api/lectures/${user}`
+    );
+
+    const lectures = await res.json();
+
+    lectures.forEach((lec) => {
+
+        container.innerHTML += `
+        <div class="lecture-card">
+            <h4>${lec.subject}</h4>
+
+            <p>
+                <strong>Faculty:</strong>
+                ${lec.faculty}
+            </p>
+
+            <p>
+                <strong>Time:</strong>
+                ${lec.start} - ${lec.end}
+            </p>
+
+            <button onclick="deleteLecture(${lec.id})">
+                Delete
+            </button>
+        </div>`;
+    });
+}
+
+// Display
+async function displayLectures() {
+
+    const tbody = document.querySelector("#scheduleTable tbody");
+    tbody.innerHTML = "";
+
+    const res = await fetch("http://localhost:5000/api/lectures");
+    const lectures = await res.json();
+
+    lectures.forEach((lec) => {
+
+        tbody.innerHTML += `
+        <tr>
+            <td>${lec.subject}</td>
+            <td>${lec.faculty}</td>
+            <td>${lec.start} - ${lec.end}</td>  
+        </tr>`;
+    });
+}
+
+// Delete
+async function deleteLecture(id) {
+
+    const res = await fetch(
+        `http://localhost:5000/api/deletelecture/${id}`,
+        {
+            method: "DELETE"
+        }
+    );
+
+    const data = await res.json();
+
+    alert(data.message);
+
+    displayLectures();
+    displayLectureCards();
+    updateDashboard();
+}
+
+// Update cards
+async function updateDashboard() {
+
+    const res = await fetch("http://localhost:5000/api/lectures");
+    const lectures = await res.json();
+
+    document.getElementById("totalLectures").innerText =
+        lectures.length;
+
+    document.getElementById("todayLectures").innerText =
+        lectures.length;
+}
+
+window.onload = function () {
+    displayLectures();
+    displayLectureCards();
+    updateDashboard();
+
+};
+</script>
+
+</body>
+</html>

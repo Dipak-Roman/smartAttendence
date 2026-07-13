@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Smart Attendance Login</title>
+    <link rel="stylesheet" href="login.css">
+</head>
+<body>
+
+<div class="login-container">
+    <h2>Smart Attendance System</h2>
+    <p class="subtitle">Login to continue</p>
+
+    <select id="role">
+        <option value="">Select Role</option>
+        <option value="teacher">Teacher</option>
+        <option value="student">Student</option>
+    </select>
+
+    <input type="text" id="username" placeholder="Enter Username">
+    <input type="password" id="password" placeholder="Enter Password">
+
+    <button onclick="login()">Login</button>
+
+    <p class="login-link">
+        Enroll the new student? <a href="signup.html">Enroll</a>
+    </p>
+
+
+    <p id="error" class="error"></p>
+</div>
+
+<script>    
+
+async function login() {
+
+    const role = document.getElementById("role").value;
+    const username = document.getElementById("username").value;
+    const password = document.getElementById("password").value;
+
+    if(username === "" || password === "" || role === "") {
+        document.getElementById("error").innerText =
+        "All fields are required!";
+        return;
+    }
+
+    const res = await fetch("http://localhost:5000/api/login", {
+
+        method: "POST",
+
+        headers: {
+            "Content-Type": "application/json"
+        },
+
+        body: JSON.stringify({
+            username,
+            password,
+            role
+        })
+    });
+
+    const data = await res.json();
+    console.log(data.message)
+    if(data.message === "Login successful") {
+
+        if(role === "teacher") {
+            console.log("saving local storage.......");
+
+            localStorage.setItem("userName", data.name);
+            console.log(localStorage.getItem("teacherName"));
+
+            window.location.href = "teacher/dashboard.html";
+
+        } else if(role === "student") {
+            localStorage.setItem("userName", data.name);
+            window.location.href = "student/stddash.html";
+        }
+
+    } else {
+        document.getElementById("error").innerText = data.message;
+    }
+}
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,162 @@
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Arial,Helvetica,sans-serif;
+}
+
+body{
+
+    background:#f4f6f9;
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    min-height:100vh;
+}
+
+.container{
+
+    width:600px;
+
+    background:white;
+
+    padding:40px;
+
+    border-radius:15px;
+
+    box-shadow:0 10px 30px rgba(0,0,0,.15);
+}
+
+h1{
+
+    text-align:center;
+
+    color:#1e3a8a;
+
+    margin-bottom:10px;
+}
+
+.container p{
+
+    text-align:center;
+
+    color:gray;
+
+    margin-bottom:30px;
+}
+
+.form{
+
+    display:flex;
+
+    flex-direction:column;
+}
+
+label{
+
+    margin-top:15px;
+
+    margin-bottom:8px;
+
+    font-weight:bold;
+}
+
+input,select{
+
+    padding:12px;
+
+    border:1px solid #ccc;
+
+    border-radius:8px;
+
+    font-size:15px;
+}
+
+.buttons{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    margin-top:30px;
+
+    gap:15px;
+}
+
+button{
+
+    flex:1;
+
+    padding:14px;
+
+    border:none;
+
+    border-radius:8px;
+
+    font-size:16px;
+
+    cursor:pointer;
+
+    color:white;
+
+    transition:.3s;
+}
+
+.saveBtn{
+
+    background:#2563eb;
+}
+
+.saveBtn:hover{
+
+    background:#1d4ed8;
+}
+
+.captureBtn{
+
+    background:#16a34a;
+}
+
+.captureBtn:hover{
+
+    background:#15803d;
+}
+
+.trainBtn{
+
+    background:#f59e0b;
+}
+
+.trainBtn:hover{
+
+    background:#d97706;
+}
+
+.status{
+
+    margin-top:35px;
+
+    background:#eef4ff;
+
+    padding:20px;
+
+    border-radius:10px;
+}
+
+.status h3{
+
+    color:#1e3a8a;
+
+    margin-bottom:10px;
+}
+
+#message{
+
+    color:#333;
+
+    font-weight:bold;
+}

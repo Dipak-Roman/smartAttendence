@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Student Registration</title>
+    <link rel="stylesheet" href="signup.css">
+</head>
+<body style="display:flex; justify-content:center; align-items:center; height:100vh;">
+
+<div class="signup-container">
+
+    <h2>Student Enrollment</h2>
+
+    <p class="subtitle">Register to mark attendance</p>
+
+    <select id="role" onchange="changeForm()">
+        <option value="">Select Role</option>
+        <option value="teacher">Teacher</option>
+        <option value="student">Student</option>
+    </select>
+
+    <div id="classContainer">
+    <select id="studentClass">
+        <option value="">Select Class</option>
+        <option value="MCA 1ST YEAR">MCA 1ST YEAR</option>
+        <option value="MCA 2ND YEAR">MCA 2ND YEAR</option>
+        <option value="MSC 1ST YEAR">MSC 1ST YEAR</option>
+        <option value="MSC 2ND YEAR">MSC 2ND YEAR</option>
+    </select>
+    </div>
+
+    <div id="classContainer2" style="display: none;">
+    <select id="teacherName">
+        <option value="">Teacher Name</option>
+        <option value="MCA 1ST YEAR">Patil Sir</option>
+        <option value="MCA 2ND YEAR">RK Mam</option>
+        <option value="MSC 1ST YEAR">Pallavi Mam</option>
+        <option value="MSC 2ND YEAR">Jyoti Mam</option>
+    </select>
+    </div>
+
+    <div id="classContainer3" style="display: none;">
+        <input type="text" id="name" placeholder="Full Name">
+    </div>
+    <input type="email" id="email" placeholder="Email">
+    <input type="text" id="roll" placeholder="Roll Number">
+    <input type="password" id="password" placeholder="Password">
+
+    <button onclick="signup()">Sign Up</button>
+
+    <p class="login-link">
+        Already have account? <a href="login.html">Login</a>
+    </p>
+
+    <p id="msg"></p>
+
+</div>
+
+<script>
+
+    function changeForm() {
+
+        const role = document.getElementById("role").value;
+        const classContainer = document.getElementById("classContainer");
+
+        if(role === "teacher") {
+            classContainer.style.display = "none";
+            classContainer2.style.display = "block";
+            classContainer3.style.display = "none";
+
+        } else {
+            classContainer.style.display = "block";
+            classContainer2.style.display = "none";
+            classContainer3.style.display = "block";
+        }
+    }
+
+async function signup() {
+
+    const role = document.getElementById("role").value;
+    let res;
+
+    if(role === "student") {
+            const std = document.getElementById("studentClass").value;
+            const name = document.getElementById("name").value;
+            const email = document.getElementById("email").value;
+            const roll = document.getElementById("roll").value;
+            const password = document.getElementById("password").value;
+        if(name === "" || email === "" || roll === "" || password === "" || std === "") {
+            document.getElementById("msg").innerText = "All fields are required!";
+            return;
+        }
+
+        //send data to the backend
+        res = await fetch('http://localhost:5000/api/signup', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                role,
+                name,
+                email,
+                std,
+                roll,
+                password,
+            })
+        });
+
+    } else { 
+            const name = document.getElementById("teacherName").value;
+            const email = document.getElementById("email").value;
+            const roll = document.getElementById("roll").value;
+            const password = document.getElementById("password").value;
+        if(name === "" || email === "" || roll === "" || password === "") {
+            document.getElementById("msg").innerText = "All fields are required!";
+            return;
+        }
+
+        //send data to the backend
+        res = await fetch('http://localhost:5000/api/signup', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                role,
+                name,
+                email,
+                roll,
+                password,
+            })
+        });
+    }
+
+    const data = await res.json();
+
+    document.getElementById("msg").innerText = data.message;
+    console.log(data.message);
+
+    if(data.message === "Registration successful") {
+        if(role === "teacher") {
+
+            console.log("saving to the local stoorage..........")
+
+            localStorage.setItem("userName", data.name);
+            window.location.href = "teacher/dashboard.html";
+        } else if(role === "student") {
+            localStorage.setItem("userName", data.name);
+            window.location.href = "student/stddash.html";
+        }
+    }else{
+        document.getElementById("msg").innerText = "error!";
+    }
+}
+</script>
+</body>
+</html>

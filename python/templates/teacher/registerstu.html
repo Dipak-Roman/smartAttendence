@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Student Registration</title>
+<link rel="stylesheet" href="registerstu.css">
+</head>
+<body>
+
+<div class="container">
+
+    <h1>Student Registration</h1>
+    <p>Add a new student for Face Recognition Attendance</p>
+
+    <div class="form">
+
+        <label>Full Name</label>
+        <input type="text" id="name" placeholder="Enter Student Name">
+
+        <label>Email</label>
+        <input type="email" id="email" placeholder="Enter Email">
+
+        <label>Class</label>
+        <select id="class">
+            <option>MCA 1ST YEAR</option>
+            <option>MCA 2ND YEAR</option>
+            <option>MSC 1ST YEAR</option>
+            <option>MSC 2ND YEAR</option>
+        </select>
+
+        <label>Roll Number</label>
+        <input type="text" id="roll" placeholder="Enter Roll Number">
+
+        <label>Password</label>
+        <input type="password" id="password" placeholder="Create Password">
+
+        <div class="buttons">
+
+            <button class="saveBtn" onclick="saveStudent()">
+                Save Student
+            </button>
+
+            <button class="captureBtn" onclick="captureFace()">
+                Capture Face
+            </button>
+
+            <button class="trainBtn" onclick="trainModel()">
+                Train Model
+            </button>
+
+        </div>
+
+        <div class="status">
+
+            <h3>Registration Status</h3>
+
+            <p id="message">
+                Waiting...
+            </p>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+    async function saveStudent() {
+
+    const name = document.getElementById("name").value;
+    const email = document.getElementById("email").value;
+    const std = document.getElementById("class").value;
+    const roll = document.getElementById("roll").value;
+    const password = document.getElementById("password").value;
+
+    if (!name || !email || !std || !roll || !password) {
+        alert("Please fill all fields.");
+        return;
+    }
+
+    const res = await fetch("http://localhost:5000/api/signup", {
+
+        method: "POST",
+
+        headers: {
+            "Content-Type": "application/json"
+        },
+
+        body: JSON.stringify({
+
+            role: "student",
+            name,
+            email,
+            std,
+            roll,
+            password
+
+        })
+
+    });
+
+    const data = await res.json();
+
+    document.getElementById("message").innerText = data.message;
+
+    if(data.success){
+        localStorage.setItem("currentStudentRoll", roll);
+        localStorage.setItem("currentStudentName", name);
+    }
+}
+
+function captureFace(){
+
+    const roll = localStorage.getItem("currentStudentRoll");
+
+    if(!roll){
+
+        alert("Save the student first.");
+
+        return;
+    }
+
+    fetch("http://localhost:5000/api/captureface",{
+
+        method:"POST",
+
+        headers:{
+            "Content-Type":"application/json"
+        },
+
+        body:JSON.stringify({
+            roll:roll
+        })
+
+    }).then(res=>res.json())
+      .then(data=>{
+
+        document.getElementById("message").innerText =
+        data.message;
+
+    });
+
+}
+
+
+async function trainModel() {
+
+    const msg = document.getElementById("message");
+
+    msg.innerText = "Training model... Please wait.";
+
+    try{
+
+        const res = await fetch("http://localhost:5000/api/train",{
+            method:"POST"
+        });
+
+        const data = await res.json();
+
+        if(data.success){
+
+            msg.innerHTML =
+                "<b>" + data.message + "</b><br><br>" +
+                data.output;
+
+        }else{
+
+            msg.innerText = data.error;
+
+        }
+
+    }catch(err){
+
+        msg.innerText = err;
+
+    }
+}
+
+
+</script>
+
+</body>
+</html>

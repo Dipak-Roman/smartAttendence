@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Attendance Report</title>
+    <link rel="stylesheet" href="report.css">
+</head>
+<body>
+
+<!-- Sidebar -->
+<div class="sidebar">
+    <h2>Teacher Panel</h2>
+    <ul>
+        <li onclick="goToDashboard()">🏠 Dashboard</li>
+        <li onclick="goToLecture()">📷 Lecture</li>
+        <li onclick="goToReport()">📊 Reports</li>
+        <li onclick="goToSchedule()">📅 Schedule</li>
+        <li onclick="logout()">🚪 Logout</li>
+    </ul>
+</div>
+
+<!-- Main -->
+<div class="main">
+
+    <!-- Header -->
+    <div class="header">
+        <h1>Attendance Reports</h1>
+        <p>View and download attendance records</p>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="cards">
+        <div class="card">
+            <h3>Total Records</h3>
+            <p id="totalRecords">0</p>
+        </div>
+
+        <div class="card">
+            <h3>Today Records</h3>
+            <p id="todayRecords">0</p>
+        </div>
+
+        <div class="card">
+            <h3>Unique Students</h3>
+            <p id="uniqueStudents">0</p>
+        </div>
+    </div>
+
+    <!-- Filter + Download -->
+    <div class="actions-box">
+        <h2>Filters & Export</h2>
+
+        <div class="actions">
+            <input type="number" id="lectureId" placeholder="Enter Lecture ID">
+            <button onclick="loadData()">Show Attendance</button>
+            <button onclick="downloadCSV()">Download CSV</button>
+        </div>
+    </div>
+
+    <!-- Table -->
+    <div class="card" style="margin-top:30px;">
+        <h3>Attendance Data</h3>
+
+        <table id="reportTable">
+            <thead>
+                <tr>
+                    <th>Roll No</th>
+                    <th>Name</th>
+                    <th>subject</th>
+                    <th>Time</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+</div>
+
+<script>
+
+// Navigation
+function goToDashboard() {
+    window.location.href = "dashboard.html";
+}
+
+function goToLecture() {
+    window.location.href = "lecture.html";
+}
+
+function goToReport() {
+    location.reload();
+}
+
+function goToSchedule() {
+    window.location.href = "schedule.html";
+}
+
+function logout() {
+    window.location.href = "../login.html";
+}
+
+// Load data
+async function loadData() {
+
+    const lectureId = document.getElementById("lectureId").value;
+
+    if (!lectureId) {
+        alert("Enter Lecture ID");
+        return;
+    }
+
+
+    const res = await fetch(
+        `http://localhost:5000/api/report/${lectureId}`
+    );
+
+    const data = await res.json();
+
+    const tbody = document.querySelector("#reportTable tbody");
+
+    tbody.innerHTML = "";
+
+    data.forEach(item => {
+
+        tbody.innerHTML += `
+        <tr>
+
+            <td>${item.roll}</td>
+
+            <td>${item.name}</td>
+
+            <td>${item.subject}</td>
+
+
+            <td>${item.time}</td>
+
+            <td>${item.status}</td>
+
+        </tr>
+        `;
+
+    });
+
+    document.getElementById("totalRecords").innerText =
+        data.length;
+
+    const today = new Date().toISOString().split("T")[0];
+
+    document.getElementById("todayRecords").innerText =
+        data.filter(x => x.date === today).length;
+
+    document.getElementById("uniqueStudents").innerText =
+        new Set(data.map(x => x.roll)).size;
+
+}
+
+// Download CSV
+function downloadCSV() {
+    let rows = document.querySelectorAll("#reportTable tr");
+    let csv = [];
+
+    rows.forEach(row => {
+        let cols = row.querySelectorAll("td, th");
+        let data = [];
+
+        cols.forEach(col => data.push(col.innerText));
+        csv.push(data.join(","));
+    });
+
+    let blob = new Blob([csv.join("\n")], { type: "text/csv" });
+
+    let link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "attendance_report.csv";
+    link.click();
+}
+
+</script>
+
+</body>
+</html>
